@@ -13,6 +13,7 @@
 </head>
 
 <body>
+  <!-- 登录部分 -->
   <div class="all">
     <div class="container">
       <div id="login-container">
@@ -24,7 +25,31 @@
             <input type="text" id="username">
           </div>
 
-          <div class="avatar">
+          <div class="password">
+            <span>密码</span>
+            <input type="text" id="password">
+          </div>
+
+          <section class="button">
+            <button class="register-btn" id="register-in">注册</button> &nbsp;
+            <button class="login-btn" id="login-config">登录</button>
+          </section>
+        </div>
+      </div>
+      <!--注册部分-->
+      <div id="register-container" style="display:none">
+        <h1 class="title">用户注册</h1>
+        <div class="userinfo">
+          <div class="user">
+            <span>用户名</span>
+            <input type="text" id="register-username">
+          </div>
+          <div class="password">
+            <span>密码</span>
+            <input type="password" id="register-password">
+          </div>
+
+          <div class="avatar" id="avatar">
             <span>选择头像</span>
             <ul class="avatars">
               <li class="active"><img src="./images/avatar01.webp" alt=""></li>
@@ -39,12 +64,14 @@
               <li><img src="./images/avatar10.webp" alt=""></li>
             </ul>
           </div>
+
           <section class="button">
-            <input type="button" value="注册" id="register"> &nbsp;
-            <button class="login-btn">登录</button>
+            <button class="register-btn" id="register-config">注册</button> &nbsp;
+            <button class="return-btn" id="return-btn">返回</button>
+          </section>
         </div>
       </div>
-
+      <!--聊天室部分-->
       <div id="chat-container" style="display: none">
         <div class="userinfo">
           <div class="self">

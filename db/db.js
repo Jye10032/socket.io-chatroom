@@ -1,4 +1,4 @@
-const conn = require('./config');
+const conn = require('../db/config');
 const connection = conn();
 // 查询所有数据
 let selectAll = (sql, callback) => {

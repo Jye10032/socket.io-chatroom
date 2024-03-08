@@ -1,80 +1,104 @@
-/**
- * 聊天室的主要功能
- */
+/*
+    聊天室的主要功能
+*/
+/*
+    1.连接socket io服务
+*/
+var socket = io('http://localhost:3000')
+var username, avatar, password, sex
+/*
+    2.登录功能
+*/
 
-// 1. 连接socketIO服务
-const socket = io('http://localhost:3000')
-
-let curr_username = ''
-let curr_avatar = ''
-
-// 2. 登录功能
-$('.avatars li').on('click', function () {
-  $(this).addClass('active').siblings().removeClass('active')
-})
-
+//点击按钮登录
 $('.login-btn').on('click', function () {
   // 获取用户名
-  const username = $('#username').val().trim()
-  if (!username) {
-    return alert('请输入用户名！')
+  username = $("#username").val().trim()
+  password = $('#password').val().trim()
+  if (!username || !password) {
+    alert('用户名或密码未填写，请填写完成再登陆')
+    return
   }
+  // // 获取选择头像
+  // //这里的.now很精妙 既加了边框，醒目 又可以通过它来找到所选的头像
+  // //attr 获取属性
+  // avatar = $('#login_avatar li.now img').attr('src')
+  // // console.log(username,avatar)
 
-  // 获取已选择的头像
-  const avatar = $('.avatars li.active img').attr('src')
-
-  // 传递用户信息到socket.io服务器
-  socket.emit('login', {
+  console.log(username, password)
+  //需要告诉服务器用户名和密码，让其验证
+  socket.emit('checkoutLogin', {
     username: username,
-    avatar: avatar
+    password: password
   })
 
-  curr_username = username
-  curr_avatar = avatar
 })
 
-// 监听登录失败事件
-socket.on('loginError', (data) => {
-  alert(data.msg)
+//接受返回查询结果
+socket.on('checkoutAnswer', data => {
+  console.log(data.msg)
+  if (data.msg === '用户名不存在') {
+    //用户名不存在
+    alert('此用户不存在')
+  } else if (data.msg === '用户密码正确') {
+    //跳转到聊天室
+    $('#login-container').fadeOut()
+    $('#chat-container').fadeIn()
+    // 需要告诉socket io服务，登录
+    //这里的头像需要查询数据库获取，在app.js实现 
+    //之前验证登录时查询过数据库，让其返回登录头像data.avatar
+    socket.emit('login', {
+      username: username,
+      avatar: data.avatar
+    })
+  } else if (data.msg === '用户密码错误') {
+    //密码错误
+    alert('密码输入错误，请重新输入')
+    return
+  }
 })
 
-// 监听登陆成功事件
-socket.on('loginSuccess', ({ data }) => {
-  // alert(data.msg)
+
+//监听登陆失败的请求
+socket.on('loginError', data => {
+  alert('登陆失败了')
+})
+
+//监听登陆成功的请求
+socket.on('loginSuccess', data => {
+  // 需要显示聊天窗口 淡入效果
+  // 需要隐藏登陆窗口 淡出效果
   $('#login-container').fadeOut()
   $('#chat-container').fadeIn()
+  //设置个人信息 显示在界面上
+  $('.avatar-url').attr('src', data.avatar)
+  $('.user-list .username').text(data.username)
 
-  // 设置个人信息
-  $('.self .username').text(data.username)
-  $('.self .avatar-url').attr('src', data.avatar)
+  username = data.username
+  avatar = data.avatar
+
 })
 
-// 添加系统消息
-// 监听添加用户的事件
-socket.on('addUser', (data) => {
+
+//监听添加用户的消息
+socket.on('addUser', data => {
+  //添加一条系统消息
   $('.comments .main-chat').append(`
-    <div class="system-info">
-      ${data.username} 加入了群聊
+        <div  class="system-info">
+            ${data.username}"加入了群聊
+        </div>
     </div>
-  `)
-  scrollIntoView('.main-chat')
+    `)
+  scrollIntoView(`.main-chat`)
 })
 
-// 监听用户离开的事件
-socket.on('delUser', (username) => {
-  $('.comments .main-chat').append(`
-    <div class="system-info">
-      ${username} 离开了群聊
-    </div>
-  `)
-  scrollIntoView('.main-chat')
-})
-
-// 监听用户列表的消息
-socket.on('userList', (data) => {
-  $('.other-users').html('')
-
-  data.forEach((item) => {
+// 监听用户列表消息
+socket.on('userList', data => {
+  //打印出来
+  // console.log(data)
+  //更新列表之前先清空
+  $('.user-list ul').html('')
+  data.forEach(item => {
     $('.other-users').append(`
       <div class="user-card">
         <img src="${item.avatar}" alt="">
@@ -83,34 +107,51 @@ socket.on('userList', (data) => {
     `)
   })
 
+  //更新用户数
   $('.comments .title').text(`聊天室(${data.length})`)
 })
 
-// 发送消息
-$('#sendMsg').on('click', () => {
-  // 获取到聊天的内容
-  const content = $('#content').text() || $('#content').html()
-  if (!content) {
-    return alert('请输入内容！')
-  }
-
-  socket.emit('sendMsg', {
-    msg: content,
-    username: curr_username,
-    avatar: curr_avatar
-  })
-
-  $('#content').text('')
+//监听用户离开的消息
+socket.on('deleteUser', data => {
+  //添加一条系统消息
+  $('.comments .main-chat').append(`
+    <div class="system-info">
+      ${username} 离开了群聊
+    </div>
+  `)
+  scrollIntoView('.main-chat')
 })
 
-// 监听聊天的消息
-socket.on('recieveMsg', (data) => {
-  // 将接收到的消息显示到聊天窗口
-  if (data.username === curr_username) {
+$('#sendMsg').on('click', function () {
+  //获取到聊天的内容
+  //html()可加入到表情元素
+  var content = $('#content').html()
+  // console.log(content)
+  //清空输入框
+  $('#content').html('')
+  if (!content) return alert('请输入内容')
+
+  let message = {
+    content: content,
+    username: username,
+    avatar: avatar,
+    type: 'html'
+  }
+  //发送给服务器
+  socket.emit('sendMessage', message)
+  console.log(message)
+})
+
+//监听聊天的消息
+socket.on('receiveMessage', data => {
+  console.log(data)
+  //把接收到的消息显示到聊天窗口中
+  if (data.username === username) {
+    //自己的消息
     $('.main-chat').append(`
       <div class="self-comment">
-        <span class="info">${data.msg}</span>
-        <img src="${data.avatar}" alt="">
+        <span class="info">${data.content}</span>
+        <img src="${avatar}" alt="">
       </div>
     `)
   } else {
@@ -118,9 +159,9 @@ socket.on('recieveMsg', (data) => {
       <div class="other-comment">
         <div class="box-info">
           <span class="username">${data.username}</span>
-          <span class="info">${data.msg}</span>
+          <span class="info">${data.content}</span>
         </div>
-        <img src="${data.avatar}" alt="">
+        <img src="${avatar}" alt="">
       </div>
     `)
   }
@@ -128,45 +169,40 @@ socket.on('recieveMsg', (data) => {
   scrollIntoView('.main-chat')
 })
 
+
+//当前元素（最近一条消息）底部滚动到可视区
+//找到.main-chat最后一个子元素
 const scrollIntoView = (target) => {
   $(target).children(':last').get(0).scrollIntoView()
 }
 
-// 发送图片的功能
+// 发送图片功能
+//onchange() 表示文件被选择 换文件
 $('#file').on('change', function () {
-  const file = this.files[0]
+  var file = this.files[0]
 
-  // 获取文件名
-  const fileName = file.name;
-
-  // 分割文件名，获取后缀名
-  const fileExtension = fileName.split('.').pop();
-
-  // 检查后缀名
-  if (fileExtension !== 'jpg' && fileExtension !== 'png') {
-    alert('只能上传jpg或png格式的图片');
-    return;
-  }
-
-  // 将这个文件发送到服务器，借助于H5的fileReader
-  const fr = new FileReader()
+  //需要把这个文件发送到服务器，借助于H5新增的fileReader
+  var fr = new FileReader()
   fr.readAsDataURL(file)
   fr.onload = function () {
-    socket.emit('sendImg', {
-      username: curr_username,
-      avatar: curr_avatar,
-      img: fr.result
+    socket.emit('sendImage', {
+      username: username,
+      avatar: avatar,
+      img: fr.result,
+      type: 'image'
     })
   }
 })
 
-// 监听图片聊天信息
-socket.on('recieveImg', (data) => {
-  if (data.username === curr_username) {
+//监听图片的聊天信息
+socket.on('receiveImage', data => {
+  //把接收到的消息显示到聊天窗口中
+  if (data.username === username) {
+    //自己的消息
     $('.main-chat').append(`
       <div class="self-comment">
         <span class="info">
-          <img src="${data.img}">
+          <img src="${data.content}">
         </span>
         <img src="${data.avatar}" alt="">
       </div>
@@ -177,7 +213,7 @@ socket.on('recieveImg', (data) => {
         <div class="box-info">
           <span class="username">${data.username}</span>
           <span class="info">
-            <img src="${data.img}">
+            <img src="${data.content}">
           </span>
         </div>
         <img src="${data.avatar}" alt="">
@@ -185,46 +221,23 @@ socket.on('recieveImg', (data) => {
     `)
   }
 
-  $('.main-chat img:last').on('load', function () {
+  //等待图片加载完成
+  $('.main-chat img :last').on('load', function () {
     scrollIntoView('.main-chat')
   })
+
 })
 
-//监听剪切板
-$(function () {
-  $('#content').on('paste', function (e) {
-    var items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    for (var i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        e.preventDefault();
-        var blob = items[i].getAsFile();
-        var URLObj = window.URL || window.webkitURL;
-        var source = URLObj.createObjectURL(blob);
-        var img = $('<img>').attr('src', source).css({ 'max-width': '100%', 'max-height': '100%', 'height': 'auto' });
-        $('#content').append(img);
-      }
-    }
-  });
-});
-
-$('.icon-emoji-happy').on('click', function () {
+//显示表情
+$('.face').on('click', function () {
   $('#content').emoji({
-    button: '.icon-emoji-happy',
-    showTab: false,
+    button: '.face',
+    showTab: true,
     animation: 'slide',
     position: 'topRight',
-    // icons: [
-    //   {
-    //     name: 'QQ表情',
-    //     path: './jquery-emoji/dist/img/tieba/',
-    //     maxNum: 50,
-    //     excludeNums: [41, 45, 54],
-    //     file: '.jpg'
-    //   }
-    // ]
     icons: [{
       name: "贴吧表情",
-      path: "./jquery-emoji/dist/img/tieba/",
+      path: "lib/jquery-emoji/img/tieba/",
       maxNum: 50,
       file: ".jpg",
       placeholder: ":{alias}:",
@@ -334,17 +347,83 @@ $('.icon-emoji-happy').on('click', function () {
       }
     }, {
       name: "QQ高清",
-      path: "./jquery-emoji/dist/img/qq/",
+      path: "lib/jquery-emoji/img/qq/",
       maxNum: 91,
       excludeNums: [41, 45, 54],
       file: ".gif",
       placeholder: "#qq_{alias}#"
     }, {
       name: "emoji高清",
-      path: "./jquery-emoji/dist/img/emoji/",
+      path: "lib/jquery-emoji/img/emoji/",
       maxNum: 84,
       file: ".png",
       placeholder: "#emoji_{alias}#"
     }]
+
   })
+})
+
+// //截图功能
+// $('.screen-cut').on('click',function() {
+//   let url = 'localhost:3000' 
+//   socket.emit('webshot',url)
+// })
+
+
+/*
+  注册功能
+*/
+
+//选择头像
+$('#avatar li').on('click', function () {
+  $(this)
+    .addClass('now')
+    .siblings()
+    .removeClass('now')
+})
+//跳转注册页
+$('#register-in').on('click', function () {
+  // 需要显示注册窗口 淡入效果
+  // 需要隐藏登陆窗口 淡出效果
+  $('#login-container').fadeOut()
+  $('#register-container').fadeIn()
+})
+
+//注册
+$('#register-config').on('click', function () {
+  //获取用户信息
+  username = $('#register-username').val().trim()
+  password = $('#register-password').val().trim()
+  // sex = $('#sex input[name=sex]:checked').val();
+  avatar = $('#avatar li.active img').attr('src')
+  // console.log(username, password, sex, avatar)
+
+  if (!username || !password || !avatar) {
+    alert('请填写完整信息后再提交!')
+    return
+  }
+  //提交用户信息到服务端
+  socket.emit('registerUser', {
+    username: username,
+    password: password,
+    sex: sex,
+    avatar: avatar
+  })
+
+})
+
+//监听注册失败的请求 先不写
+socket.on('registerError', function () {
+  alert('此用户名已被注册，请您更换一个')
+})
+
+//监听注册成功的请求
+socket.on('registerSuccess', function () {
+  alert('注册成功!')
+
+})
+//注册页返回登录页
+$('.return-btn').on('click', function () {
+  $('#register-container').fadeOut();
+  $('#login-container').fadeIn();
 })
