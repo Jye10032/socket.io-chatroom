@@ -12,7 +12,7 @@ const chinaTime = require('china-time')
 // //支持截图功能
 // const webshot = require('webshot');
 //记录所有已经登陆过的用户
-const users = []
+var users = []
 var id_now = 1
 
 //启动了服务器
@@ -54,6 +54,8 @@ function initMessage(socket) {
 
     }
   })
+  console.log("当前用户：");
+  console.log(users);
 }
 
 
@@ -81,7 +83,8 @@ io.on('connection', function (socket) {
       }
       socket.emit('checkoutAnswer', {
         msg: msg,
-        avatar: resultData.avatar
+        avatar: resultData.avatar,
+        online: users.find(item => item.username === data.username) ? true : false
       })
       console.log(msg, resultData)
     })
@@ -98,11 +101,11 @@ io.on('connection', function (socket) {
       })
       // console.log('登陆失败')
     } else {
-      // //连接数据库获取用户头像
-      db.selectAll("select * from usersInformation where username ='" + data.username + "' ", (e, r) => {
-        data.avatar = r[0].avatar
-        console.log(r[0].avatar)
-      })
+      // // //连接数据库获取用户头像
+      // db.selectAll("select * from usersInformation where username ='" + data.username + "' ", (e, r) => {
+      //   data.avatar = r[0].avatar
+      //   console.log(r[0].avatar)
+      // })
       //把登陆成功的用户信息存储起来
       //socket.username ? avatar 内置对象？ 不太像
       socket.username = data.username
@@ -130,7 +133,7 @@ io.on('connection', function (socket) {
   //用户断开连接功能
   //监听用户断开连接
   socket.on('disconnect', () => {
-    if (socket.username === 'undefined') return
+    if (socket.username === 'undefined') return;
     //把当前用户信息从user中删除
     let idx = users.findIndex(item => item.username === socket.username)
     //删除掉断开连接的人

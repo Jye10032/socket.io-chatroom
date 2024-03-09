@@ -34,7 +34,9 @@ CREATE TABLE `message` (
 
 /*Data for the table `message` */
 
-insert  into `message`(`id`,`username`,`content`,`time`,`avatar`,`type`) values (1,'小贺','嘤嘤嘤，大家上午好','20/06/12 10:39','images/avatar05.jpg','html'),(2,'小美','泥萌好鸭<img class=\"emoji_icon\" src=\"lib/jquery-emoji/img/tieba/36.jpg\">','20/06/12 10:40','images/avatar02.jpg','html'),(3,'小王','各位，起的好早啊','20/06/12 10:40','images/avatar09.jpg','html'),(4,'小王','好想再睡会儿','20/06/12 10:40','images/avatar09.jpg','html'),(5,'小贺','太阳都晒屁股了','20/06/12 10:40','images/avatar05.jpg','html'),(6,'小贺','<img class=\"emoji_icon\" src=\"lib/jquery-emoji/img/tieba/40.jpg\"><img class=\"emoji_icon\" src=\"lib/jquery-emoji/img/tieba/40.jpg\"><img class=\"emoji_icon\" src=\"lib/jquery-emoji/img/tieba/40.jpg\">','20/06/12 10:40','images/avatar05.jpg','html'),(7,'小美','就是就是','20/06/12 10:41','images/avatar02.jpg','html'),(8,'小王','那我起床学习了','20/06/12 10:41','images/avatar09.jpg','html'),(9,'小王','今天又是充实的一天~','20/06/12 10:41','images/avatar09.jpg','html'),(10,'小美','嘻嘻嘻','20/06/12 10:42','images/avatar02.jpg','html'),(11,'小贺','哈哈哈','20/06/12 12:04','images/avatar05.jpg','html'),(12,'小王','哈哈','20/06/12 12:10','images/avatar09.jpg','html'),(13,'小王','xixi','20/06/12 12:13','images/avatar09.jpg','html'),(14,'小王','呱呱','20/06/12 12:16','images/avatar09.jpg','html'),(15,'小美','<div>中午了 我的课程设计做的差不多了吃饭去了</div><div><br></div>','20/06/12 12:48','images/avatar02.jpg','html'),(16,'小贺','好滴 我也吃饭去了','20/06/12 12:48','images/avatar05.jpg','html'),(17,'小贺','吃完饭了哒哒','20/06/12 13:30','images/avatar05.jpg','html'),(18,'小美','<div>我也吃完了</div><div><br></div>','20/06/12 13:30','images/avatar02.jpg','html'),(19,'小王','<img class=\"emoji_icon\" src=\"lib/jquery-emoji/img/tieba/2.jpg\">','20/06/12 19:02','images/avatar09.jpg','html');
+insert  into `message`(`id`,`username`,`content`,`time`,`avatar`,`type`) values 
+(1,'Tom','test','24/3/9 13:26','images/avatar02.webp','html'),
+(2,'Bob','<img src="js/jquery-emoji/src/img/emoji/1.png">','24/3/9 13:28','images/avatar05.webp','html');
 
 /*Table structure for table `usersinformation` */
 
@@ -57,8 +59,8 @@ CREATE TABLE `usersinformation` (
 
 /*Data for the table `usersinformation` */
 
--- insert  into `usersinformation`(`username`,`password`,`avatar`) values ('小刘','woshixiaoliu','images/avatar06.jpg'),('小张','woshixiaozhang','male','images/avatar08.jpg'),('小楚','woshixiaochu','male','images/avatar10.jpg'),('小王','woshixiaowang','male','images/avatar09.jpg'),('小美','woshixiaomei','female','images/avatar02.jpg'),('小贺','0415','male','images/avatar05.jpg'),('晓晓','woshixiaoxiao','female','images/avatar06.jpg');
-insert into `usersinformation`(`username`,`password`,`avatar`) values ('admin','123456','images/avatar01.jpg');
+-- insert  into `usersinformation`(`username`,`password`,`avatar`) values ('小刘','woshixiaoliu','images/avatar06.webp'),('小张','woshixiaozhang','male','images/avatar08.webp'),('小楚','woshixiaochu','male','images/avatar10.webp'),('小王','woshixiaowang','male','images/avatar09.webp'),('小美','woshixiaomei','female','images/avatar02.webp'),('小贺','0415','male','images/avatar05.webp'),('晓晓','woshixiaoxiao','female','images/avatar06.webp');
+insert into `usersinformation`(`username`,`password`,`avatar`) values ('admin','123456','images/avatar01.webp');
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;

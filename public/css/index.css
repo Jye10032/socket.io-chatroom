@@ -395,6 +395,9 @@ body .all .container #chat-container .comments .operations .btn button {
     border-radius: .5rem;
     cursor: pointer;
     display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
 /*# sourceMappingURL=./index.css.map */

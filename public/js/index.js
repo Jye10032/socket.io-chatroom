@@ -20,7 +20,7 @@ $('.login-btn').on('click', function () {
     return
   }
   // // 获取选择头像
-  // //这里的.now很精妙 既加了边框，醒目 又可以通过它来找到所选的头像
+  // //这里的.active很精妙 既加了边框，醒目 又可以通过它来找到所选的头像
   // //attr 获取属性
   // avatar = $('#login_avatar li.now img').attr('src')
   // // console.log(username,avatar)
@@ -40,10 +40,7 @@ socket.on('checkoutAnswer', data => {
   if (data.msg === '用户名不存在') {
     //用户名不存在
     alert('此用户不存在')
-  } else if (data.msg === '用户密码正确') {
-    //跳转到聊天室
-    $('#login-container').fadeOut()
-    $('#chat-container').fadeIn()
+  } else if (data.msg === '用户密码正确' && !data.online) {
     // 需要告诉socket io服务，登录
     //这里的头像需要查询数据库获取，在app.js实现 
     //之前验证登录时查询过数据库，让其返回登录头像data.avatar
@@ -55,6 +52,10 @@ socket.on('checkoutAnswer', data => {
     //密码错误
     alert('密码输入错误，请重新输入')
     return
+  }
+  else if (data.online) {
+    alert('此用户已登录')
+
   }
 })
 
@@ -72,7 +73,7 @@ socket.on('loginSuccess', data => {
   $('#chat-container').fadeIn()
   //设置个人信息 显示在界面上
   $('.avatar-url').attr('src', data.avatar)
-  $('.user-list .username').text(data.username)
+  $('.username').text(data.username)
 
   username = data.username
   avatar = data.avatar
@@ -97,7 +98,7 @@ socket.on('userList', data => {
   //打印出来
   // console.log(data)
   //更新列表之前先清空
-  $('.user-list ul').html('')
+  $('.other-users').html('')
   data.forEach(item => {
     $('.other-users').append(`
       <div class="user-card">
@@ -116,7 +117,7 @@ socket.on('deleteUser', data => {
   //添加一条系统消息
   $('.comments .main-chat').append(`
     <div class="system-info">
-      ${username} 离开了群聊
+      ${data.username} 离开了群聊
     </div>
   `)
   scrollIntoView('.main-chat')
@@ -151,7 +152,7 @@ socket.on('receiveMessage', data => {
     $('.main-chat').append(`
       <div class="self-comment">
         <span class="info">${data.content}</span>
-        <img src="${avatar}" alt="">
+        <img src="${data.avatar}" alt="">
       </div>
     `)
   } else {
@@ -161,7 +162,7 @@ socket.on('receiveMessage', data => {
           <span class="username">${data.username}</span>
           <span class="info">${data.content}</span>
         </div>
-        <img src="${avatar}" alt="">
+        <img src="${data.avatar}" alt="">
       </div>
     `)
   }
@@ -229,15 +230,24 @@ socket.on('receiveImage', data => {
 })
 
 //显示表情
-$('.face').on('click', function () {
+$('.icon-emoji-happy').on('click', function () {
   $('#content').emoji({
-    button: '.face',
-    showTab: true,
+    button: '.icon-emoji-happy',
+    showTab: false,
     animation: 'slide',
     position: 'topRight',
+    // icons: [
+    //   {
+    //     name: 'QQ表情',
+    //     path: './jquery-emoji/dist/img/tieba/',
+    //     maxNum: 50,
+    //     excludeNums: [41, 45, 54],
+    //     file: '.jpg'
+    //   }
+    // ]
     icons: [{
       name: "贴吧表情",
-      path: "lib/jquery-emoji/img/tieba/",
+      path: "./js/jquery-emoji/dist/img/tieba/",
       maxNum: 50,
       file: ".jpg",
       placeholder: ":{alias}:",
@@ -347,22 +357,20 @@ $('.face').on('click', function () {
       }
     }, {
       name: "QQ高清",
-      path: "lib/jquery-emoji/img/qq/",
+      path: "./js/jquery-emoji/dist/img/qq/",
       maxNum: 91,
       excludeNums: [41, 45, 54],
       file: ".gif",
       placeholder: "#qq_{alias}#"
     }, {
       name: "emoji高清",
-      path: "lib/jquery-emoji/img/emoji/",
+      path: "./js/jquery-emoji/dist/img/emoji/",
       maxNum: 84,
       file: ".png",
       placeholder: "#emoji_{alias}#"
     }]
-
   })
 })
-
 // //截图功能
 // $('.screen-cut').on('click',function() {
 //   let url = 'localhost:3000' 
@@ -375,11 +383,11 @@ $('.face').on('click', function () {
 */
 
 //选择头像
-$('#avatar li').on('click', function () {
+$('.avatars li').on('click', function () {
   $(this)
-    .addClass('now')
+    .addClass('active')
     .siblings()
-    .removeClass('now')
+    .removeClass('active')
 })
 //跳转注册页
 $('#register-in').on('click', function () {
@@ -395,7 +403,8 @@ $('#register-config').on('click', function () {
   username = $('#register-username').val().trim()
   password = $('#register-password').val().trim()
   // sex = $('#sex input[name=sex]:checked').val();
-  avatar = $('#avatar li.active img').attr('src')
+  avatar = $('.avatars li.active img').attr('src')
+
   // console.log(username, password, sex, avatar)
 
   if (!username || !password || !avatar) {
