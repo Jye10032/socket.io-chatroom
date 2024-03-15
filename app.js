@@ -7,6 +7,7 @@ const io = require('socket.io')(server)
 const path = require('path');
 const db = require('./db/db.js')
 const chinaTime = require('china-time')
+const svgCaptcha = require('svg-captcha');
 
 
 // //支持截图功能
@@ -14,6 +15,7 @@ const chinaTime = require('china-time')
 //记录所有已经登陆过的用户
 var users = []
 var id_now = 1
+var captcha = svgCaptcha.create();
 
 //启动了服务器
 server.listen(3000, () => {
@@ -67,6 +69,34 @@ function initMessage(socket) {
  */
 io.on('connection', function (socket) {
 
+
+  //验证码
+  socket.on('getCaptcha', () => {
+    captcha = svgCaptcha.create({
+      size: 4,
+      fontSize: 50,
+      width: 100,
+      height: 40,
+      background: '#cc9966'
+    })
+
+    socket.emit('captcha', captcha.data)
+
+  })
+
+  //验证验证码
+  socket.on('checkoutFirst', (data, callback) => {
+    console.log(data);
+    if (data.verify.toLowerCase() === captcha.text.toLowerCase()) {
+      callback({
+        status: "ok"
+      });
+    } else {
+      callback({
+        status: "error"
+      });
+    }
+  });
   socket.on('checkoutLogin', data => {
     // 连接数据库验证
     let msg = '',

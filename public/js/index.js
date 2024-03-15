@@ -6,6 +6,12 @@
 */
 var socket = io('http://localhost:3000')
 var username, avatar, password, sex
+
+// 页面加载完成后，发送获取验证码的请求
+document.addEventListener('DOMContentLoaded', () => {
+  // 向服务器发送获取验证码的请求
+  socket.emit('getCaptcha');
+});
 /*
     2.登录功能
 */
@@ -15,24 +21,33 @@ $('.login-btn').on('click', function () {
   // 获取用户名
   username = $("#username").val().trim()
   password = $('#password').val().trim()
-  if (!username || !password) {
-    alert('用户名或密码未填写，请填写完成再登陆')
-    return
-  }
+  // if (!username || !password) {
+  //   alert('用户名或密码未填写，请填写完成再登陆')
+  //   return
+  // }
+  verify = $('#verify').val().trim()
   // // 获取选择头像
   // //这里的.active很精妙 既加了边框，醒目 又可以通过它来找到所选的头像
   // //attr 获取属性
   // avatar = $('#login_avatar li.now img').attr('src')
   // // console.log(username,avatar)
 
-  console.log(username, password)
+
   //需要告诉服务器用户名和密码，让其验证
-  socket.emit('checkoutLogin', {
-    username: username,
-    password: password
-  })
+  socket.emit('checkoutFirst', { verify: verify }, (response) => {
+    if (response.status === 'ok') {
+      socket.emit('checkoutLogin', {
+        username: username,
+        password: password
+      });
+    } else {
+      alert('验证码错误')
+    };
+  });
+  console.log(verify)
 
 })
+
 
 //接受返回查询结果
 socket.on('checkoutAnswer', data => {
@@ -436,3 +451,13 @@ $('.return-btn').on('click', function () {
   $('#register-container').fadeOut();
   $('#login-container').fadeIn();
 })
+
+socket.on('captcha', function (data) {
+  console.log(data)
+  $('#captcha').html(data);
+})
+
+$('#captcha').on('click', function () {
+  socket.emit('getCaptcha')
+})
+
